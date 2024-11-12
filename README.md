@@ -74,7 +74,7 @@ Jika Anda ingin berkontribusi pada proyek ini, silakan ikuti langkah-langkah ber
     git checkout -b bambang
     ```
 
-    Note : ganti nama bambang sesuka anda.
+    > Note : ganti nama bambang sesuka anda.
 
 2. **Lakukan Perubahan dan Commit**
    Setelah melakukan perubahan, lakukan commit:

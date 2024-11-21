@@ -2,19 +2,20 @@
 session_start();
 include 'connection.php';
 
-$data_page = 10;
+// Setup untuk pagination
+$data_page = 10; // Jumlah data per halaman
+$current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1; // Menentukan halaman aktif 
+$offset = ($current_page - 1) * $data_page; // Menentukan indeks data awal yang diambil dalam page tsb
 
-$current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$offset = ($current_page - 1) * $data_page;
-
+// Filter handle
 $filter_column = "";
 $filter_value = "";
-
 if (isset($_GET['filter']) && isset($_GET['value'])) {
     $filter_column = $_GET['filter'];
     $filter_value = $_GET['value'];
 }
 
+// Query untuk total data 
 $total_records_query = "SELECT COUNT(*) AS total FROM data";
 if ($filter_column && $filter_value) {
     $total_records_query .= " WHERE $filter_column = '$filter_value'";
@@ -23,12 +24,18 @@ $total_records_result = mysqli_query($conn, $total_records_query);
 $total_records_row = mysqli_fetch_assoc($total_records_result);
 $total_records = $total_records_row['total'];
 
+// Menghitung total halaman dari total data
 $total_pages = ceil($total_records / $data_page);
 
+// Query untuk data utama 
 $query = "SELECT * FROM data";
+
+// Kondisi apabila filter dilakukan
 if ($filter_column && $filter_value) {
     $query .= " WHERE $filter_column = '$filter_value'";
 }
+
+// Menambahkan query lanjutan dari query utama untuk limit data sesuai page
 $query .= " LIMIT $offset, $data_page";
 $result = mysqli_query($conn, $query);
 ?>
@@ -48,6 +55,7 @@ $result = mysqli_query($conn, $query);
 
     <main class="p-8">
         <section class="mb-6">
+            <!-- Form method GET karena menerima data dari input untuk filtering -->
             <form method="GET" class="flex justify-center space-x-4">
                 <div>
                     <label for="filter" class="block text-sm font-medium text-gray-700">Filter Berdasarkan</label>
@@ -77,6 +85,7 @@ $result = mysqli_query($conn, $query);
                     </tr>
                 </thead>
                 <tbody>
+                    <!-- Mengambil data tabel dari SQL -->
                     <?php
                     if (mysqli_num_rows($result) > 0) {
                         while ($row = mysqli_fetch_assoc($result)) {
@@ -96,11 +105,12 @@ $result = mysqli_query($conn, $query);
 
             <!-- Pagination -->
             <div class="pagination flex justify-center space-x-4 p-4">
-                <a href="?page=<?php echo max(1, $current_page - 1); ?>&filter=<?php echo $filter_column; ?>&value=<?php echo urlencode($filter_value); ?>" 
-                   class="px-4 py-2 rounded <?php echo ($current_page == 1) ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-700 text-white'; ?>">
+                <button href="?page=<?php echo max(1, $current_page - 1); ?>&filter=<?php echo $filter_column; ?>&value=<?php echo urlencode($filter_value); ?>" 
+                   class="px-4 py-2 rounded <?php echo ($current_page == 1) ? 'bg-gray-300 text-gray-500 cursor-not-allowed disabled' : 'bg-blue-500 hover:bg-blue-700 text-white'; ?>">
                     Previous
-                </a>
+                </button>
 
+                <!-- Membuat button pagination sebanyak total pages -->
                 <?php for ($page = 1; $page <= $total_pages; $page++): ?>
                     <a href="?page=<?php echo $page; ?>&filter=<?php echo $filter_column; ?>&value=<?php echo urlencode($filter_value); ?>" 
                        class="px-4 py-2 rounded <?php echo ($page == $current_page) ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-blue-100 text-blue-600'; ?>">
@@ -108,10 +118,10 @@ $result = mysqli_query($conn, $query);
                     </a>
                 <?php endfor; ?>
 
-                <a href="?page=<?php echo min($total_pages, $current_page + 1); ?>&filter=<?php echo $filter_column; ?>&value=<?php echo urlencode($filter_value); ?>" 
+                <button href="?page=<?php echo min($total_pages, $current_page + 1); ?>&filter=<?php echo $filter_column; ?>&value=<?php echo urlencode($filter_value); ?>" 
                    class="px-4 py-2 rounded <?php echo ($current_page == $total_pages) ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-700 text-white'; ?>">
                     Next
-                </a>
+                </button>
             </div>
         </section>
     </main>

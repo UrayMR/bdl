@@ -16,12 +16,8 @@ if (strpos($request, $basePath) === 0) {
     $request = substr($request, strlen($basePath));
 }
 
-// Daftar rute dan controller yang sesuai
-$routes = [
-    '/' => 'HomeController@index',
-    '/home' => 'HomeController@index',
-    '/filters' => 'FilterController@index',
-];
+// Inklusi koneksi database
+include_once __DIR__ . '/config/connection.php';
 
 // Fungsi autoload untuk memuat file controller secara otomatis
 spl_autoload_register(function ($class) {
@@ -31,14 +27,29 @@ spl_autoload_register(function ($class) {
     }
 });
 
+// Cek rute tabel terlebih dahulu
+include_once __DIR__ . '/routes/tables.php';
+if (handleTableRoutes($request, $conn)) {
+    exit; // Jika rute tabel ditangani, hentikan eksekusi
+}
+
+// Daftar rute lainnya
+$routes = [
+    '/' => 'HomeController@index',
+    '/home' => 'HomeController@index',
+];
+
 // Fungsi untuk memanggil controller dan metodenya
-function callController($controllerAction) {
+function callController($controllerAction, $conn, $params = []) {
     list($controller, $action) = explode('@', $controllerAction);
 
     // Periksa apakah controller dan metode ada
     if (class_exists($controller) && method_exists($controller, $action)) {
-        $controllerInstance = new $controller;
-        $controllerInstance->$action();
+        // Instansiasi controller dengan koneksi database sebagai dependensi
+        $controllerInstance = new $controller($conn);
+
+        // Panggil metode dengan parameter jika ada
+        call_user_func_array([$controllerInstance, $action], $params);
     } else {
         // Jika controller atau metode tidak ditemukan
         http_response_code(500);
@@ -47,9 +58,9 @@ function callController($controllerAction) {
     }
 }
 
-// Periksa apakah rute ada
+// Cek rute umum
 if (array_key_exists($request, $routes)) {
-    callController($routes[$request]);
+    callController($routes[$request], $conn);
 } else {
     // Tampilkan halaman 404 jika rute tidak ditemukan
     http_response_code(404);

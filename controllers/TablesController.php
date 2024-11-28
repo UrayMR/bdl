@@ -1,43 +1,52 @@
 <?php
-
-class TablesController {
+class TablesController
+{
     private $db;
 
-    public function __construct($conn) {
+    // Array untuk menyimpan kolom yang bisa dicari untuk setiap tabel
+    private $searchableColumns = [
+        'users' => ['npm', 'nama', 'angkatan', 'idJurusan'],
+        'divisi' => ['idDivisi', 'namaDivisi'],
+        'jurusan' => ['idJurusan', 'namaJurusan'],
+        'fakultas' => ['idFakultas', 'namaFakultas'],
+        'panitia' => ['idPanitia', 'namaPanitia']
+    ];
+
+    public function __construct($conn)
+    {
         $this->db = $conn;
     }
 
-    /**
-     * Menampilkan halaman tabel berdasarkan nama tabel.
-     * @param string $tableName Nama tabel yang diminta.
-     */
-    public function index($tableName) {
+    public function index($tableName)
+    {
         $allowedTables = ['users', 'divisi', 'jurusan', 'fakultas', 'panitia'];
-        $perPage = 10; // Jumlah data per halaman
+        $perPage = 10;
 
         if (in_array($tableName, $allowedTables)) {
-            // Menghitung total data
-            $totalData = $this->getTableDataCount($tableName);
+            // Ambil search query jika ada
+            $searchQuery = isset($_GET['search']) ? trim($_GET['search']) : '';
 
-            // Menghitung total halaman
+            // Hitung total data dengan mempertimbangkan filter pencarian
+            $totalData = $this->getTableDataCount($tableName, $searchQuery);
+
+            // Hitung total halaman
             $totalPages = ceil($totalData / $perPage);
 
-            // Ambil nomor halaman dari query string, default halaman 1
+            // Ambil nomor halaman dari query string
             $currentPage = isset($_GET['page']) ? (int)$_GET['page'] : 1;
             $currentPage = max($currentPage, 1);
-            $currentPage = min($currentPage, $totalPages);
+            $currentPage = min($currentPage, max(1, $totalPages));
 
-            // Hitung offset untuk query
+            // Hitung offset
             $offset = ($currentPage - 1) * $perPage;
 
-            // Ambil data tabel sesuai dengan offset dan per halaman
-            $data = $this->getTableDataWithLimit($tableName, $offset, $perPage);
+            // Ambil data dengan pencarian dan pagination
+            $data = $this->getTableDataWithLimit($tableName, $offset, $perPage, $searchQuery);
 
-            // Tentukan path ke view berdasarkan nama tabel
+            // Tampilkan view
             $viewPath = __DIR__ . '/../views/tables/' . $tableName . '.php';
-            
+
             if (file_exists($viewPath)) {
-                // Kirim data dan pagination info ke view
                 include $viewPath;
             } else {
                 echo "View untuk tabel '$tableName' tidak ditemukan.";
@@ -47,36 +56,76 @@ class TablesController {
         }
     }
 
-// Ambil jumlah total data dalam tabel
-    public function getTableDataCount($tableName) {
-        // Query untuk menghitung jumlah data dalam tabel
+    public function getTableDataCount($tableName, $searchQuery = '')
+    {
         $query = "SELECT COUNT(*) AS total FROM $tableName";
-        
-        // Persiapkan dan eksekusi query
-        $stmt = $this->db->prepare($query);
+
+        // Tambahkan kondisi pencarian jika ada
+        if (!empty($searchQuery) && isset($this->searchableColumns[$tableName])) {
+            $searchConditions = [];
+            foreach ($this->searchableColumns[$tableName] as $column) {
+                $searchConditions[] = "$column LIKE ?";
+            }
+            $query .= " WHERE " . implode(" OR ", $searchConditions);
+
+            // Persiapkan statement
+            $stmt = $this->db->prepare($query);
+
+            // Buat array parameter untuk binding
+            $params = array_fill(0, count($this->searchableColumns[$tableName]), "%$searchQuery%");
+
+            // Bind parameter
+            $types = str_repeat('s', count($params));
+            $stmt->bind_param($types, ...$params);
+        } else {
+            $stmt = $this->db->prepare($query);
+        }
+
         $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
 
-        // Ambil hasilnya menggunakan fetch()
-        $result = $stmt->get_result();  // Menggunakan get_result() dengan mysqli
-        $row = $result->fetch_assoc();  // Mengambil baris hasil dengan fetch_assoc()
-
-        return $row['total'];  // Mengembalikan total baris
+        return $row['total'];
     }
 
-    public function getTableDataWithLimit($tableName, $offset, $limit) {
-        // Query untuk mengambil data dengan batasan
-        $query = "SELECT * FROM $tableName LIMIT ?, ?";
-        
+    public function getTableDataWithLimit($tableName, $offset, $limit, $searchQuery = '')
+    {
+        $query = "SELECT * FROM $tableName";
+
+        // Tambahkan kondisi pencarian jika ada
+        if (!empty($searchQuery) && isset($this->searchableColumns[$tableName])) {
+            $searchConditions = [];
+            foreach ($this->searchableColumns[$tableName] as $column) {
+                $searchConditions[] = "$column LIKE ?";
+            }
+            $query .= " WHERE " . implode(" OR ", $searchConditions);
+        }
+
+        // Tambahkan LIMIT dan OFFSET
+        $query .= " LIMIT ? OFFSET ?";
+
         // Persiapkan statement
         $stmt = $this->db->prepare($query);
-        $stmt->bind_param("ii", $offset, $limit);  // Binding parameter untuk limit dan offset
 
-        // Eksekusi query
+        if (!empty($searchQuery) && isset($this->searchableColumns[$tableName])) {
+            // Buat array parameter untuk search
+            $params = array_fill(0, count($this->searchableColumns[$tableName]), "%$searchQuery%");
+            // Tambahkan parameter untuk LIMIT dan OFFSET
+            $params[] = $limit;
+            $params[] = $offset;
+
+            // Buat string types untuk bind_param
+            $types = str_repeat('s', count($this->searchableColumns[$tableName])) . 'ii';
+
+            // Bind semua parameter
+            $stmt->bind_param($types, ...$params);
+        } else {
+            // Jika tidak ada pencarian, hanya bind LIMIT dan OFFSET
+            $stmt->bind_param("ii", $limit, $offset);
+        }
+
         $stmt->execute();
-
-        // Ambil hasilnya dan kembalikan dalam bentuk array asosiatif
-        $result = $stmt->get_result();  // Menggunakan get_result()
-        return $result->fetch_all(MYSQLI_ASSOC);  // Mengambil semua hasil dalam bentuk array asosiatif
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
     }
-
 }

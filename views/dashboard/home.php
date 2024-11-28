@@ -42,12 +42,34 @@
           </div>
         </div>
       </div>
+
+      <div class="col">
+        <div class="card">
+          <div class="card-body text-center">
+            <h5 class="card-title">Angkatan Paling Banyak</h5>
+            <h5 class="card-text">
+              <?php echo $data['mostAngkatan'] ?? 0; ?>
+            </h5>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="card">
+          <div class="card-body text-center">
+            <h5 class="card-title">Jurusan Paling Banyak</h5>
+            <h5 class="card-text">
+              <?php echo $data['mostJurusan'] ?? 0; ?>
+            </h5>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="col mt-3 px-3">
       <div class="card">
         <div class="card-body">
-          <h5 class="card-title text-center">Tabel Panitia 5 Teratas</h5>
+          <h5 class="card-title text-center">Tabel 5 Panitia Teratas</h5>
           <table class="card-text table table-hover">
             <thead>
               <tr>
@@ -60,13 +82,13 @@
             </thead>
             <tbody>
               <?php foreach ($data['tablePanitia'] as $panitia): ?>
-              <tr>
-                <td><?php echo htmlspecialchars($panitia['npm']); ?></td>
-                <td><?php echo htmlspecialchars($panitia['nama']); ?></td>
-                <td><?php echo htmlspecialchars($panitia['divisi']); ?></td>
-                <td><?php echo htmlspecialchars($panitia['angkatan']); ?></td>
-                <td><?php echo htmlspecialchars($panitia['jurusan']); ?></td>
-              </tr>
+                <tr>
+                  <td><?php echo htmlspecialchars($panitia['npm']); ?></td>
+                  <td><?php echo htmlspecialchars($panitia['nama']); ?></td>
+                  <td><?php echo htmlspecialchars($panitia['divisi']); ?></td>
+                  <td><?php echo htmlspecialchars($panitia['angkatan']); ?></td>
+                  <td><?php echo htmlspecialchars($panitia['jurusan']); ?></td>
+                </tr>
               <?php endforeach; ?>
             </tbody>
           </table>

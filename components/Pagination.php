@@ -1,28 +1,39 @@
-<nav aria-label="Pagination">
+<?php if ($totalPages >1): ?>
+<nav aria-label="Page navigation">
   <ul class="pagination justify-content-center">
-    <!-- Previous Page -->
-    <li class="page-item <?php echo ($currentPage == 1) ? 'disabled' : ''; ?>">
-      <a class="page-link" href="?page=<?php echo $currentPage - 1; ?>"
-        >Previous</a
+    <!-- Previous -->
+    <li class="page-item <?php echo $currentPage <= 1 ? 'disabled' : ''; ?>">
+      <a
+        class="page-link"
+        href="?page=<?php echo $currentPage - 1; ?><?php echo isset($_GET['search']) ? '&search=' . htmlspecialchars($_GET['search']) : ''; ?>"
       >
+        Previous
+      </a>
     </li>
 
-    <!-- Pages -->
-    <?php for ($page = 1; $page <= $totalPages; $page++): ?>
-    <li
-      class="page-item <?php echo ($page == $currentPage) ? 'active' : ''; ?>"
-    >
-      <a class="page-link" href="?page=<?php echo $page; ?>"
-        ><?php echo $page; ?></a
+    <!-- Page Numbers -->
+    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+    <li class="page-item <?php echo $i === $currentPage ? 'active' : ''; ?>">
+      <a
+        class="page-link"
+        href="?page=<?php echo $i; ?><?php echo isset($_GET['search']) ? '&search=' . htmlspecialchars($_GET['search']) : ''; ?>"
       >
+        <?php echo $i; ?>
+      </a>
     </li>
     <?php endfor; ?>
 
-    <!-- Next Page -->
+    <!-- Next -->
     <li
-      class="page-item <?php echo ($currentPage == $totalPages) ? 'disabled' : ''; ?>"
+      class="page-item <?php echo $currentPage >= $totalPages ? 'disabled' : ''; ?>"
     >
-      <a class="page-link" href="?page=<?php echo $currentPage + 1; ?>">Next</a>
+      <a
+        class="page-link"
+        href="?page=<?php echo $currentPage + 1; ?><?php echo isset($_GET['search']) ? '&search=' . htmlspecialchars($_GET['search']) : ''; ?>"
+      >
+        Next
+      </a>
     </li>
   </ul>
 </nav>
+<?php endif; ?>

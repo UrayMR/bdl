@@ -1,19 +1,24 @@
 <?php
 
-class HomeController {
+class HomeController
+{
     private $db;
 
-    public function __construct($conn) {
+    public function __construct($conn)
+    {
         $this->db = $conn;
     }
-    
-    public function index() {
-        
+
+    public function index()
+    {
+
         $banyakPanitia = $this->getCount('panitia');
         $banyakDivisi = $this->getCount('divisi');
         $banyakJurusan = $this->getCount('jurusan');
         $banyakFakultas = $this->getCount('fakultas');
         $tablePanitia = $this->getTablePanitia();
+        $mostAngkatan = $this->getMost('angkatan', 'users');
+        $mostJurusan = $this->getMost('jurusan', 'datapanitia');
 
         $data = [
             'banyakPanitia' => $banyakPanitia,
@@ -21,6 +26,8 @@ class HomeController {
             'banyakJurusan' => $banyakJurusan,
             'banyakFakultas' => $banyakFakultas,
             'tablePanitia' => $tablePanitia,
+            'mostAngkatan' => $mostAngkatan,
+            'mostJurusan' => $mostJurusan,
         ];
 
         // Mengirimkan data ke view
@@ -35,7 +42,18 @@ class HomeController {
         return $row['count'];
     }
 
-    private function getTablePanitia() {
+    private function getMost($columnName, $tableName)
+    {
+        $query = "SELECT $columnName, COUNT(*) as jumlah from $tableName group by $columnName order by jumlah desc LIMIT 1";
+        $result = $this->db->query($query);
+        if ($result && $row = $result->fetch_assoc()) {
+            return $row[$columnName]; // Mengembalikan nilai dari kolom yang paling banyak
+        }
+        return null;
+    }
+
+    private function getTablePanitia()
+    {
         $query = "
             SELECT 
                 `p`.`npm` AS `npm`,

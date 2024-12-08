@@ -37,10 +37,12 @@ if (handleTableRoutes($request, $conn)) {
 $routes = [
     '/' => 'HomeController@index',
     '/home' => 'HomeController@index',
+    '/filters' => 'FiltersController@index',
 ];
 
 // Fungsi untuk memanggil controller dan metodenya
-function callController($controllerAction, $conn, $params = []) {
+function callController($controllerAction, $conn, $params = [])
+{
     list($controller, $action) = explode('@', $controllerAction);
 
     // Periksa apakah controller dan metode ada

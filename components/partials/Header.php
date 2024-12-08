@@ -23,7 +23,7 @@
       <button
         class="navbar-toggler"
         type="button"
-        data-bs-toggle="collapse" 
+        data-bs-toggle="collapse"
         data-bs-target="#navbarSupportedContent"
         aria-controls="navbarSupportedContent"
         aria-expanded="false"
@@ -51,6 +51,9 @@
               <li><a class="dropdown-item" href="/bdl/tables/fakultas">Fakultas</a></li>
               <li><a class="dropdown-item" href="/bdl/tables/panitia">Panitia</a></li>
             </ul>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/bdl/filters">Filters</a>
           </li>
         </ul>
       </div>

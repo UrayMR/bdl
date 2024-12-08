@@ -51,11 +51,19 @@ class FiltersController
     $sql = "SELECT nama, npm FROM users";
     $result = $this->db->query($sql);
     $names = [];
+
     if ($result) {
       while ($row = $result->fetch_assoc()) {
-        $names[$row['nama']] = $row['npm'];
+        $names[$row['npm']] = $row['nama'];
       }
+
+      if ($this->db->error) {
+        echo "<p style='color: red;'>Database Error: " . htmlspecialchars($this->db->error) . "</p>";
+      }
+    } else {
+      echo "<p style='color: red;'>Query failed: " . htmlspecialchars($this->db->error) . "</p>";
     }
+
     return $names;
   }
 
@@ -262,4 +270,3 @@ class FiltersController
     return $data;
   }
 }
-  

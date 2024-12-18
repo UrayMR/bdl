@@ -3,7 +3,7 @@
 class FiltersController
 {
   private $db;
-  private $itemsPerPage = 10; // Number of items per page - you can adjust this
+  private $itemsPerPage = 10; // Number of items per page
 
   public function __construct($conn)
   {
@@ -18,13 +18,18 @@ class FiltersController
     $currentPage = isset($_GET['page']) ? (int)$_GET['page'] : 1;
     $currentPage = max(1, $currentPage); // Ensure page is at least 1
 
+    // Debug Point
+    // echo "DEBUG POINT 3: Parameters received: <br>";
+    // echo "npm: " . ($_GET['npm'] ?? 'not set') . "<br>";
+    // echo "parameter: " . ($_GET['parameter'] ?? 'not set') . "<br>";
+    // echo "kriteria: " . ($_GET['kriteria'] ?? 'not set') . "<br>";
+    // echo "page: $currentPage <br>";
+
     $results = null;
-    if (!empty($_GET['nama']) && !empty($_GET['parameter']) && !empty($_GET['kriteria'])) {
-      // Get filtered results with pagination
+    if (!empty($_GET['npm']) && !empty($_GET['parameter']) && !empty($_GET['kriteria'])) {
       $results = $this->filter($currentPage);
       $totalItems = $this->getTotalFilteredItems();
     } else {
-      // Get regular table with pagination
       $results = $this->getTablePanitia($currentPage);
       $totalItems = $this->getTotalItems();
     }
@@ -69,7 +74,7 @@ class FiltersController
 
   private function getTotalFilteredItems()
   {
-    $npm = $_GET['nama'] ?? null;
+    $npm = $_GET['npm'] ?? null;
     $parameter = $_GET['parameter'] ?? null;
     $kriteria = $_GET['kriteria'] ?? null;
 
@@ -146,7 +151,7 @@ class FiltersController
 
   public function filter($currentPage = 1)
   {
-    $npm = $_GET['nama'] ?? null;
+    $npm = $_GET['npm'] ?? null;
     $parameter = $_GET['parameter'] ?? null;
     $kriteria = $_GET['kriteria'] ?? null;
 

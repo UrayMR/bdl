@@ -13,7 +13,7 @@
               <option value="">Pilih Nama</option>
               <?php foreach ($data['names'] as $npm => $name): ?>
                 <option value="<?php echo htmlspecialchars($npm); ?>"
-                  <?php echo (isset($_GET['npm']) && $_GET['npm'] === $npm) ? 'selected' : ''; ?>>
+                  <?php echo (isset($_GET['npm']) && $_GET['npm'] == $npm) ? 'selected' : ''; ?>>
                   <?php echo htmlspecialchars($name); ?>
                 </option>
               <?php endforeach; ?>
